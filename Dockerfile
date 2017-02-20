@@ -53,3 +53,4 @@ RUN chmod -R ugo+rX /Jar && \
 ######
 
 WORKDIR /Data
+CMD [echo "hello world"]

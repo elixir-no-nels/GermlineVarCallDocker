@@ -12,7 +12,7 @@ python-all \
 ruby \
 && rm -rf /var/lib/apt/lists/*
 
-#-------------- Install GATK3.5 and Mutect1.1.5
+#-------------- Install GATK3.5
 
 ADD GATK3_bin/GATK3.zip /
 RUN cd /  && \
@@ -53,4 +53,3 @@ RUN chmod -R ugo+rX /Jar && \
 ######
 
 WORKDIR /Data
-CMD [echo "hello world"]

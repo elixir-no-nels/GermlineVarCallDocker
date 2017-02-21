@@ -26,6 +26,7 @@ RUN cd /  && \
 
 ADD rbFlow_Engine/rbFlow.zip /
 RUN cd / && unzip rbFlow.zip && rm rbFlow.zip
+ADD rbFlow_Engine/tool_modules /rbFlow/lib/tool_modules
 ENV PATH $PATH:/rbFlow/bin/
 
 #--------------- Install Java 8

@@ -213,7 +213,7 @@ RUN wget https://github.com/dellytools/delly/releases/download/v0.7.6/delly_v0.7
 
 
 #-------------- Install GATK3.5 and Mutect1.1.7
-COPY GATK3 /Jar
+COPY GATK3_bin /Jar
 RUN mv /Jar/mutect-1.1.7.jar /Jar/mutect.jar
 
 

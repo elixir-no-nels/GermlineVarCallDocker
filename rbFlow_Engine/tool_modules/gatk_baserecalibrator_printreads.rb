@@ -71,6 +71,7 @@ class GATK_BaseRecalibrator_PrintReads < Toolbase
         cmd.line << "cd \#{project_path}; \#{java_bin} \#{arg_java} "
         cmd.line << "-jar \#{gatk_jar}"
         cmd.line << "-T   PrintReads"
+        cmd.line << "-nct  \#{core}"
         cmd.line << "-R   \#{ref_path}"
         cmd.line << "-I   \#{file}"
         cmd.line << "-BQSR \#{group}"

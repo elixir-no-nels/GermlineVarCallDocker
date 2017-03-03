@@ -13,6 +13,7 @@ class GATK_HaplotypeCaller < Toolbase
      output_dir     = <%= @opt_parser.get      from: 'output_dir',    default_value: 'output', required: true,  type: String, comment: 'Output Directory' %>
      output_suffix  = <%= @opt_parser.get      from: 'output_suffix', default_value: '_DOC',   required: true,  type: String, comment: 'suffix for output files' %>
      java_bin       = <%= @opt_parser.get      from: 'java_bin',      default_value: 'java',   required: false, type: String, comment: 'binary or Path/binary for java' %>
+     core           = <%= @opt_parser.get      from: 'core',          default_value: 1,        required: false, type: Integer,  comment: 'Number of core to use' %>
      gatk_jar       = <%= @opt_parser.get      from: 'gatk_jar',      default_value: 'GenomeAnalysisTK.jar',    required: false,  type: String,  comment: 'Path/file.jar for GATK' %>
      arg_java       = <%= @opt_parser.get_args from: 'java',          default_value: ['-Xmx4G'],   comment: 'Argument send to Java' %>
      arg_gatk       = <%= @opt_parser.get_args from: 'gatk',          default_value: [],           comment: 'Argument for gatk (send to all gatk tools used in this step)' %>
@@ -40,7 +41,8 @@ class GATK_HaplotypeCaller < Toolbase
         cmd = Command.new task_name: task_name, log: @log
         cmd.line << "cd \#{project_path}; \#{java_bin} \#{arg_java} "
         cmd.line << "-jar \#{gatk_jar}"
-        cmd.line << "-T   HaplotypeCaller "
+        cmd.line << "-T   HaplotypeCaller"
+        cmd.line << "-nct  \#{core}"
         cmd.line << "-R   \#{ref_path}"
         cmd.line << "-I   \#{file}"
         cmd.line << "-o   \#{out_vcf}"

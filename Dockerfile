@@ -138,6 +138,7 @@ COPY rbFlow_Engine/rbFlow.zip /
 RUN unzip rbFlow.zip && \
     rm rbFlow.zip && \
     rm -rf /rbFlow/.git
+ADD rbFlow_Engine/tool_modules /rbFlow/lib/tool_modules
 ENV PATH $PATH:/rbFlow/bin/
 
 

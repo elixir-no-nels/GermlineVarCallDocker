@@ -1,0 +1,155 @@
+---
+info:
+  name: "workflow_test"
+  desc: "blablabla"
+  log_dir: "Logs"
+  steps_status_dir: "steps_custom_dir"
+
+
+workflow_steps:
+-
+  tool: "Test"
+  id: "test1_tumor"
+  desc: "Test Task 1 tumor"
+  depend_from: ""
+  step_options:
+    thread_per_task: 1
+    input_dir: "fastaq"
+    input_tag_1: "*1.fq"
+    input_tag_2: "*2.fq"
+    output_dir: "Result_01_b_bwa_out"
+    wait_time: 2
+  command_line_options:
+    tool1:
+      - "-i /arg/for/i"
+      - "-j /arg/for/j"
+      - "-k /arg/for/k"
+
+-
+  tool: "Test"
+  id: "test1_normal"
+  desc: "Test Task 1 normal"
+  depend_from: ""
+  step_options:
+    thread_per_task: 1
+    input_dir: "fastaq"
+    input_tag_1: "*1.fq"
+    input_tag_2: "*2.fq"
+    output_dir: "Result_01_a_bwa_out"
+    wait_time: 3
+  command_line_options:
+    tool1:
+      - "-i /arg/for/i"
+      - "-j /arg/for/j"
+      - "-k /arg/for/k"
+
+-
+  tool: "Test"
+  id: "test2_normal"
+  desc: "Test task 2 normal"
+  depend_from: "test1_normal"
+  step_options:
+    thread_per_task: 1
+    input_dir: "Result_01_a_bwa_out"
+    input_tag_1: "*1.fq"
+    input_tag_2: "*2.fq"
+    output_dir: "Result_02_a_index_out"
+    wait_time: 3
+  command_line_options:
+    tool1:
+      - "-i /arg/for/i"
+      - "-j /arg/for/j"
+      - "-k /arg/for/k"
+
+-
+  tool: "Test"
+  id: "test2_tumor"
+  desc: "Test task 2 tumor"
+  depend_from: "test1_tumor"
+  step_options:
+    thread_per_task: 1
+    input_dir: "Result_01_b_bwa_out"
+    input_tag_1: "*1.fq"
+    input_tag_2: "*2.fq"
+    output_dir: "Result_02_b_index_out"
+    wait_time: 4
+  command_line_options:
+    tool1:
+      - "-i /arg/for/i"
+      - "-j /arg/for/j"
+      - "-k /arg/for/k"
+
+-
+  tool: "Test"
+  id: "test3"
+  desc: "A first intermediate test result"
+  depend_from: ["test2_normal", "test2_tumor"]
+  step_options:
+    thread_per_task: 1
+    input_dir: "Result_02_a_index_out"
+    input_tag_1: "*1.fq"
+    input_tag_2: "*2.fq"
+    output_dir: "Result_03_result1"
+    wait_time: 2
+  command_line_options:
+    tool1:
+      - "-i /arg/for/i"
+      - "-j /arg/for/j"
+      - "-k /arg/for/k"
+
+-
+  tool: "Test"
+  id: "test4"
+  desc: "A second intermediate test result"
+  depend_from: ["test1_tumor", "test1_normal", "test3"]
+  step_options:
+    thread_per_task: 1
+    input_dir: "Result_03_result1"
+    input_tag_1: "*1.fq"
+    input_tag_2: "*2.fq"
+    output_dir: "Result_04_result2"
+    wait_time: 3
+  command_line_options:
+    tool1:
+      - "-i /arg/for/i"
+      - "-j /arg/for/j"
+      - "-k /arg/for/k"
+
+-
+  tool: "Test"
+  id: "test5"
+  desc: "An other intermediate test result"
+  depend_from: ["test1_tumor", "test1_normal", "test4"]
+  step_options:
+    thread_per_task: 1
+    input_dir: "Result_04_result2"
+    input_tag_1: "*1.fq"
+    input_tag_2: "*2.fq"
+    output_dir: "Result_05_result3"
+    wait_time: 2
+  command_line_options:
+    tool1:
+      - "-i /arg/for/i"
+      - "-j /arg/for/j"
+      - "-k /arg/for/k"
+
+-
+  tool: "Test"
+  id: "result"
+  desc: "The final test result"
+  depend_from: ["test4", "test5"]
+  result: "true"
+  step_options:
+    thread_per_task: 1
+    input_dir: "fastaq"
+    input_tag_1: "*1.fq"
+    input_tag_2: "*2.fq"
+    output_dir: "Result_05_result3"
+    wait_time: 2
+    create_warn: "Warning Test"
+    #create_error: "Oops !!! keep calm it's just a test"
+  command_line_options:
+    tool1:
+      - "-i /arg/for/i"
+      - "-j /arg/for/j"
+      - "-k /arg/for/k"

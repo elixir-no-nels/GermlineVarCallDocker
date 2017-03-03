@@ -1,0 +1,41 @@
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	rbflow Version : dev version 0.9.0
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Creating the Workflow : [workflow_test_docker]
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Create new Step : [test1a_docker] using [Test_Docker] Tool Module
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Init Rake Step  : [test1a_docker] with [Test_Docker] Tool Module
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Write Rake Step : [test1a_docker] in [workflow_test_docker_task_test1a_docker.rb]
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Create new Step : [test1b_docker] using [Test_Docker] Tool Module
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Init Rake Step  : [test1b_docker] with [Test_Docker] Tool Module
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Write Rake Step : [test1b_docker] in [workflow_test_docker_task_test1b_docker.rb]
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Create new Step : [test2_normal] using [Test_Docker] Tool Module
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Init Rake Step  : [test2_normal] with [Test_Docker] Tool Module
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	  - dependent from : test1a_docker
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	  - dependent from : test1b_docker
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Write Rake Step : [test2_normal] in [workflow_test_docker_task_test2_normal.rb]
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Workflow Finalisation : Dependence tree built to get result(s) for step(s) : 
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	  - final steps id: test2_normal
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Init Rake Step  : [default_dynamic] with [DefaultTask] Tool Module
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	  - dependent from : test2_normal
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Write Rake Step : [default_dynamic] in [workflow_test_docker_default_dynamic.rb]
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Init Rake Step  : [default] with [DefaultTaskStandAlone] Tool Module
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	  - dependent from : test2_normal
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Write Rake Step : [default] in [workflow_test_docker_default.rb]
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Workflow Finalisation : Copy libraries for a standalone usage of the rakefiles : /Users/Ghis/Work/Depot-Perso/rbFlow/lib/rbFlow/log.rb
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Workflow Finalisation : Copy libraries for a standalone usage of the rakefiles : /Users/Ghis/Work/Depot-Perso/rbFlow/lib/rbFlow/files_manager.rb
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	Workflow Finalisation : Copy libraries for a standalone usage of the rakefiles : /Users/Ghis/Work/Depot-Perso/rbFlow/lib/rbFlow/command.rb
+0	2017-02-16 14:07:02 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	-----| Starting the Workflow : [workflow_test_docker] |-----
+0	2017-02-16 14:07:02 +0100	[1mtest1a_docker[22m	[32mINFO[0m	Test Task 1a in a container START:  Start|1487250422
+0	2017-02-16 14:07:02 +0100	[1mtest1a_docker[22m	[32mINFO[0m	using docker images : alpine
+0	2017-02-16 14:07:02 +0100	[1mtest1b_docker[22m	[32mINFO[0m	Test Task 1b in a container START:  Start|1487250422
+0	2017-02-16 14:07:02 +0100	[1mtest1b_docker[22m	[32mINFO[0m	using docker images : alpine
+0	2017-02-16 14:07:02 +0100	[1mtest1a_docker[22m	[1m[34mEXECUTE[0m[22m	docker run -u=501:20  --rm  alpine sh -c "echo hello from a container && sleep 2 "
+0	2017-02-16 14:07:02 +0100	[1mtest1b_docker[22m	[1m[34mEXECUTE[0m[22m	docker run -u=501:20  --rm  alpine sh -c "echo hello from a container && sleep 3 "
+3	2017-02-16 14:07:05 +0100	[1mtest1a_docker[22m	[34mFINISH[0m	docker run -u=501:20  --rm  alpine sh -c "echo hello from a container && sleep 2 "
+3	2017-02-16 14:07:05 +0100	[1mtest1a_docker[22m	[32mINFO[0m	Test Task 1a in a container END:  Start|1487250422|  End|1487250425|  Execution time|3.341519| seconds
+4	2017-02-16 14:07:06 +0100	[1mtest1b_docker[22m	[34mFINISH[0m	docker run -u=501:20  --rm  alpine sh -c "echo hello from a container && sleep 3 "
+4	2017-02-16 14:07:06 +0100	[1mtest1b_docker[22m	[32mINFO[0m	Test Task 1b in a container END:  Start|1487250422|  End|1487250426|  Execution time|4.501949| seconds
+4	2017-02-16 14:07:06 +0100	[1mtest2_normal[22m	[32mINFO[0m	Test task 2 normal START:  Start|1487250426
+4	2017-02-16 14:07:06 +0100	[1mtest2_normal[22m	[32mINFO[0m	using docker images : alpine
+4	2017-02-16 14:07:06 +0100	[1mtest2_normal[22m	[1m[34mEXECUTE[0m[22m	docker run -u=501:20  --rm  alpine sh -c "echo hello from a container && sleep 2 "
+8	2017-02-16 14:07:10 +0100	[1mtest2_normal[22m	[34mFINISH[0m	docker run -u=501:20  --rm  alpine sh -c "echo hello from a container && sleep 2 "
+8	2017-02-16 14:07:10 +0100	[1mtest2_normal[22m	[32mINFO[0m	Test task 2 normal END:  Start|1487250426|  End|1487250430|  Execution time|4.017441| seconds
+8	2017-02-16 14:07:10 +0100	[1mworkflow_test_docker[22m	[32mINFO[0m	The Workflow is now finish

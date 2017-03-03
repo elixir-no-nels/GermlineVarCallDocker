@@ -1,0 +1,49 @@
+---
+info:
+  name: "workflow_test_docker"
+  desc: "blablabla"
+  log_dir: "Logs"
+  steps_status_dir: "steps_custom_dir"
+
+
+workflow_steps:
+-
+  tool: "Test_Docker"
+  id: "test1a_docker"
+  desc: "Test Task 1a in a container"
+  depend_from: ""
+  step_options:
+    docker_image: "alpine"
+    docker_opts: " --rm "
+    wait_time: 2
+  command_line_options:
+    tool_d:
+      - ""
+
+
+-
+  tool: "Test_Docker"
+  id: "test1b_docker"
+  desc: "Test Task 1b in a container"
+  depend_from: ""
+  step_options:
+    docker_image: "alpine"
+    docker_opts: " --rm "
+    wait_time: 3
+  command_line_options:
+    tool_d:
+      - ""
+
+-
+  tool: "Test_Docker"
+  id: "test2_normal"
+  desc: "Test task 2 normal"
+  depend_from: ["test1a_docker", "test1b_docker"]
+  result: "true"
+  step_options:
+    docker_image: "alpine"
+    docker_opts: " --rm "
+    wait_time: 2
+  command_line_options:
+    tool_d:
+      - ""

@@ -1,113 +1,88 @@
----
-info:
-  name: "Preprocessing_FastQ_to_BAM"
-  desc: "Ghislain Fournous"
-  log_dir: "output/Logs"
-  steps_status_dir: "output/FinishedSteps"
+# to register the module. This name must start by a capital, use CamelCase and correspond to the class name
+@module_name = "BWA_MEM_CSV"
 
+# The module itself
+class BWA_MEM_CSV < Toolbase
 
-workflow_steps:
+  def get_config_template
+    erb_template = %~
+     input_csv        = <%= @opt_parser.get      from: 'input_csv',       default_value: 'input',  required: true,  type: String, comment: 'Input csv file, containing the list of input files' %>
+     output_dir       = <%= @opt_parser.get      from: 'output_dir',      default_value: 'output', required: true,  type: String, comment: 'Output Directory' %>
+     output_suffix    = <%= @opt_parser.get      from: 'output_suffix',   default_value: 'bwa',    required: false, type: String, comment: 'suffix for output files' %>
+     bwa_index        = <%= @opt_parser.get      from: 'bwa_index',       default_value: '',       required: true,  type: String, comment: 'index file with path' %>
+     bwa_bin          = <%= @opt_parser.get      from: 'bwa_bin',         default_value: 'bwa',    required: false, type: String, comment: 'binary or Path/binary for bwa' %>
+     core             = <%= @opt_parser.get      from: 'core',            default_value: 1,        required: false, type: Integer, comment: 'Number of core to use' %>
+     arg_for_bwa      = <%= @opt_parser.get_args from: 'bwa',             default_value: [],       comment: 'Argument send to BWA' %>
+    ~
+  end
 
+  ## Template for the Rake Task
+  def tool_template()
+    @step = %~
+    FileUtils.mkdir_p output_dir
+    ## Parse the CSV
+    split_char = "\\t"
+    File.open(input_csv, "r") do |f|
+      f.each do |line|
+        ## Start main loop on each line
+        line.chomp!
+        # Some checks
+        # check the number of columns
+        line_size      = line.split(split_char).size
+        expected_field = 6
+        if line_size != expected_field
+          @log.info(task_name) {" Error on \#{input_csv} parsing"}
+          @log.info(task_name) {" a line contain \#{line_size} field, \#{expected_field} are expected :"}
+          @log.info(task_name) {" \#{line}"}
+          exit()
+        end
+        # Check if there is non allowed characters (no spaces,quotes or backslash)
+        if not line.match(/[\\"\\']/).nil?
+          @log.info(task_name) {" Error on \#{input_csv} parsing"}
+          @log.info(task_name) {" a line contain a non allowed symbol (space, tab, quote, backslash) :"}
+          @log.info(task_name) {" \#{line}"}
+          exit()
+        end
+        # Build ReadGroups
+        # FLOWCELL_ID,RGSM,RGLB,Lane,File_R1,File_R2
+        # RGID : the read group ID, must be unique flowcell_barcode.lane is a good ID
+        # RGSM : the sample, to identify a sample splited on several files/sequencing Run
+        # RGLB : Library ID, used for mark/remove duplicate.
+        # RGPU : {flowcell_barcode}.{lane}.{sample_barcode}
+        flowcell_id, sample, library_id, lane, file_name_R1, file_name_R2 = line.split split_char
+        rgid = flowcell_id + '.' + lane
+        rgpu = flowcell_id + '.' + lane + '.' + sample
+        rgsm = sample
+        rglb = library_id
+        readgroup_string = "-R \\"@RG\\\\tID:\#{rgid}\\\\tSM:\#{rgsm}\\\\tLB:\#{rglb}\\\\tPL:ILLUMINA\\\\tPU:\#{rgpu}\\""
+        ## Inputs/Outputs
+        basename = rgpu
+        now      = Time.new.strftime("%d_%m_%Y-%H_%M_%S")
+        output   = "\#{output_dir}/\#{basename}\#{output_suffix}.sam"
+        stderr   = "\#{output_dir}/\#{basename}\#{output_suffix}_stderr-\#{now}.log"
+        ## the actual mapping
+        cmd = Command.new task_name: task_name, log: @log
+        cmd.line << "\#{bwa_bin} mem"
+        cmd.line << "-t \#{core}"
+        cmd.line << readgroup_string
+        cmd.line << "\#{arg_for_bwa}"
+        cmd.line << "\#{bwa_index}"
+        cmd.line << "/Workflow/input/\#{file_name_R1}"
+        cmd.line << "/Workflow/input/\#{file_name_R2}"
+        cmd.line << ">  \#{output} 2> \#{stderr}"
+        cmd.run compress_spaces: true, debug_mode: debug
+        # - Error Test -
+        if File.file?(output) # if the file exist
+          error_list.push "\#{output} output file is empty"  if File.size(output)  == 0 # the size should be > 0
+        else
+          error_list.push "\#{output} output file not found" # boolean
+        end
+        # - Error Test -
+      end
+    end
+    ~
+  end
 
-#
-# Mapping
-#
+end
 
--
-  tool: "BWA_MEM_CSV"
-  id: "bwa_mem_loop"
-  desc: "BWA-mem_csv"
-  depend_from: ""
-  step_options:
-    bwa_bin: "bwa"
-    core: 16
-    input_csv: "/Workflow/input.csv"
-    output_dir: "output/01_mapping_bwa"
-    output_suffix: "_map"
-    bwa_index: "references//human_g1k_v37_decoy.fasta"
-  command_line_options:
-    bwa:
-      - "-M"
-
-
-#
-# PreProcessing
-#
-
--
-  tool: "Picard2MultiInput"
-  id: "Picard_SortMergeSam"
-  desc: "picard sorting"
-  depend_from: ["bwa_mem_loop"]
-  step_options:
-    input_dir: "output/01_mapping_bwa"
-    input_files: "*.sam"
-    output_dir: "output/02_bamsorted"
-    output_suffix: "_sorted"
-    java_bin: "java"
-    picard2_jar: "/Jar/picard.jar"
-    picard2_command: "MergeSamFiles"
-  command_line_options:
-    java:
-      - "-Xmx15G"
-      - "-Djava.io.tmpdir=/tmp"
-    picard2:
-      - "CREATE_INDEX=true"
-      - "USE_THREADING=true"
-      - "MAX_RECORDS_IN_RAM=1000000"
-      - "SORT_ORDER=coordinate"
-      - "VALIDATION_STRINGENCY=LENIENT"
-
--
-  tool: "Picard2"
-  id: "picard_mark_duplicate"
-  desc: "picard mark duplicate and merge lanes"
-  depend_from: ["Picard_SortMergeSam"]
-  step_options:
-    input_dir: "output/02_bamsorted"
-    input_files: "*.bam"
-    output_dir: "output/03_markdup"
-    output_suffix: "_markdup"
-    java_bin: "java"
-    picard2_jar: "/Jar/picard.jar"
-    picard2_command: "MarkDuplicates"
-  command_line_options:
-    java:
-      - "-Xmx15G"
-      - "-Djava.io.tmpdir=/tmp"
-    picard2:
-      - "METRICS_FILE=samples.metrics"
-      - "VALIDATION_STRINGENCY=LENIENT"
-      - "CREATE_INDEX=true"
-      - "MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=1000"
-
--
-  tool: "GATK_BaseRecalibrator_PrintReads"
-  id: "GATK_BaseRecalibrator"
-  desc: "GATK Fix Mate Base Recalibration"
-  depend_from: ["picard_mark_duplicate"]
-  result: "true"
-  step_options:
-    core: 10
-    input_dir: "output/03_markdup"
-    input_files: "*.bam"
-    output_dir: "output/04_gatk_recal"
-    output_suffix: "_recalib"
-    java_bin: "java"
-    gatk_jar: "/Jar/GenomeAnalysisTK.jar"
-    ref_path:   "references//human_g1k_v37_decoy.fasta"
-  command_line_options:
-    java:
-      - "-Xmx15G"
-      - "-Djava.io.tmpdir=/tmp"
-    gatk:
-      - " "
-    gatk_recal:
-      - " -knownSites references/1000g.vcf "
-      - " -knownSites references/Mills_and_1000G_gold_standard.indels.b37.vcf "
-      - " -knownSites references/dbsnp.vcf "
-      - " -cov ContextCovariate "
-      - " -cov CycleCovariate "
-    gatk_PrintReads:
-      - ""
 

@@ -7,14 +7,14 @@ LABEL lang.julia=""
 LABEL lang.Ruby="2.4.x"
 LABEL lang.Java="8u112"
 # Software installed
-LABEL soft.Picard="2.8.x"
-LABEL soft.varscan="2.3.x"
-LABEL soft.Strelka="2.7.x"
+LABEL soft.Picard="2.12.x"
+#LABEL soft.varscan="2.4.x"
+#LABEL soft.Strelka="2.7.x"
 LABEL soft.samtools="1.3.x"
-LABEL soft.bedtools="2.26.x"
-LABEL soft.delly="0.7.x"
+#LABEL soft.bedtools="2.26.x"
+#LABEL soft.delly="0.7.x"
 LABEL soft.bwa="0.7.x"
-LABEL soft.fastqc="0.11.x"
+#LABEL soft.fastqc="0.11.x"
 LABEL ext_soft.rbFlow="latest"
 # Software locally installed (licence issue)
 LABEL ext_soft.GATK="3.7"
@@ -37,9 +37,10 @@ RUN set -ex && \
 
 #-------------- Install Java_8
 # from https://developer.atlassian.com/blog/2015/08/minimal-java-docker-containers/
+# Java Version and other ENV
 ENV JAVA_VERSION_MAJOR=8 \
-    JAVA_VERSION_MINOR=121 \
-    JAVA_VERSION_BUILD=13 \
+    JAVA_VERSION_MINOR=144 \
+    JAVA_VERSION_BUILD=01 \
     JAVA_PACKAGE=jdk \
     JAVA_JCE=standard \
     JAVA_HOME=/opt/jdk \
@@ -47,31 +48,30 @@ ENV JAVA_VERSION_MAJOR=8 \
     GLIBC_VERSION=2.23-r3 \
     LANG=C.UTF-8
 
-RUN for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION} glibc-i18n-${GLIBC_VERSION}; do curl -sSL https://github.com/andyshinn/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/${pkg}.apk -o /tmp/${pkg}.apk; done && \
+# do all in one step
+RUN set -ex && \
+    apk upgrade --update && \
+    apk add --update libstdc++ curl ca-certificates bash && \
+    for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION} glibc-i18n-${GLIBC_VERSION}; do curl -sSL https://github.com/andyshinn/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/${pkg}.apk -o /tmp/${pkg}.apk; done && \
     apk add --allow-untrusted /tmp/*.apk && \
+    rm -v /tmp/*.apk && \
     ( /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true ) && \
     echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh && \
     /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib && \
-    mkdir /tmp/dcevm && \
-    curl -L -o /tmp/dcevm/DCEVM-light-8u112-installer.jar "https://github.com/dcevm/dcevm/releases/download/light-jdk8u112%2B8/DCEVM-light-8u112-installer.jar" && \
     mkdir /opt && \
     curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" -o /tmp/java.tar.gz \
-      http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/e9e7ea248e2c4826b92b3f075a80e441/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz && \
+      http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/090f390dda5b47b9b721c7dfaa008135/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz && \
     gunzip /tmp/java.tar.gz && \
     tar -C /opt -xf /tmp/java.tar && \
     ln -s /opt/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} /opt/jdk && \
-    cd /tmp/dcevm && \
-    unzip DCEVM-light-8u112-installer.jar && \
-    mkdir -p /opt/jdk/jre/lib/amd64/dcevm && \
-    cp linux_amd64_compiler2/product/libjvm.so /opt/jdk/jre/lib/amd64/dcevm/libjvm.so && \
-    if [ "${JAVA_JCE}" == "unlimited" ]; then echo "Installing Unlimited JCE policy" && \
+    if [ "${JAVA_JCE}" == "unlimited" ]; then echo "Installing Unlimited JCE policy" >&2 && \
       curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" -o /tmp/jce_policy-${JAVA_VERSION_MAJOR}.zip \
         http://download.oracle.com/otn-pub/java/jce/${JAVA_VERSION_MAJOR}/jce_policy-${JAVA_VERSION_MAJOR}.zip && \
       cd /tmp && unzip /tmp/jce_policy-${JAVA_VERSION_MAJOR}.zip && \
-      cp -v /tmp/UnlimitedJCEPolicyJDK8/*.jar /opt/jdk/jre/lib/security/; \
+      cp -v /tmp/UnlimitedJCEPolicyJDK8/*.jar /opt/jdk/jre/lib/security; \
     fi && \
     sed -i s/#networkaddress.cache.ttl=-1/networkaddress.cache.ttl=10/ $JAVA_HOME/jre/lib/security/java.security && \
-    apk del glibc-i18n && \
+    apk del curl glibc-i18n && \
     rm -rf /opt/jdk/*src.zip \
            /opt/jdk/lib/missioncontrol \
            /opt/jdk/lib/visualvm \
@@ -104,8 +104,9 @@ RUN for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION} glibc-i18n-${GL
            /opt/jdk/jre/lib/oblique-fonts \
            /opt/jdk/jre/lib/plugin.jar \
            /tmp/* /var/cache/apk/* && \
-    echo "hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4" >> /etc/nsswitch.conf && \
-    mkdir /Jar
+    echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf
+
+# EOF
 
 
 #--------------  Install Ruby verion 2.4.0
@@ -123,10 +124,10 @@ RUN wget https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz && \
 
 
 #-------------- Install cpanminus
-RUN curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm && \
-    chmod +x cpanm && \
-    mv cpanm /usr/bin/  && \
-    cpanm App::cpanminus
+#RUN curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm && \
+#    chmod +x cpanm && \
+#    mv cpanm /usr/bin/  && \
+#    cpanm App::cpanminus
 
 
 #-------------- Install Julia
@@ -134,29 +135,28 @@ RUN curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm &
 
 
 #-------------- Install the workflow engine
-COPY rbFlow_Engine/rbFlow.zip /
-RUN unzip rbFlow.zip && \
-    rm rbFlow.zip && \
-    rm -rf /rbFlow/.git
-ADD rbFlow_Engine/tool_modules /rbFlow/lib/tool_modules
+COPY rbFlow /
+RUN rm -rf /rbFlow/.git
 ENV PATH $PATH:/rbFlow/bin/
 
+#-------------- Create a /Jar directory to store jar files
+RUN mkdir /Jar
 
 #-------------- Install Picard
-RUN wget https://github.com/broadinstitute/picard/releases/download/2.8.3/picard.jar -O /Jar/picard.jar
+RUN wget https://github.com/broadinstitute/picard/releases/download/2.12.1/picard.jar -O /Jar/picard.jar
 
 
 #-------------- Install VarScan
-RUN wget https://downloads.sourceforge.net/project/varscan/VarScan.v2.3.9.jar -O /Jar/VarScan.jar
+#RUN wget https://github.com/dkoboldt/varscan/releases/download/2.4.2/VarScan.v2.4.2.jar -O /Jar/VarScan.jar
 
 
 #-------------- Install Strelka 2.7.x
-RUN wget https://github.com/Illumina/strelka/releases/download/v2.7.1/strelka-2.7.1.centos5_x86_64.tar.bz2 && \
-    tar xvfj strelka-2.7.1.centos5_x86_64.tar.bz2 && \
-    rm strelka-2.7.1.centos5_x86_64.tar.bz2 && \
-    mv strelka-2.7.1.centos5_x86_64 strelka-2.7.1
-ENV PATH $PATH:/strelka-2.7.1/bin
-RUN rm -rf strelka-2.7.1/share/demo/strelka/
+#RUN wget https://github.com/Illumina/strelka/releases/download/v2.7.1/strelka-2.7.1.centos5_x86_64.tar.bz2 && \
+#    tar xvfj strelka-2.7.1.centos5_x86_64.tar.bz2 && \
+#    rm strelka-2.7.1.centos5_x86_64.tar.bz2 && \
+#    mv strelka-2.7.1.centos5_x86_64 strelka-2.7.1
+#ENV PATH $PATH:/strelka-2.7.1/bin
+#RUN rm -rf strelka-2.7.1/share/demo/strelka/
 
 
 #-------------- samtools 1.3.x
@@ -183,14 +183,14 @@ RUN wget https://github.com/samtools/htslib/releases/download/1.3.2/htslib-1.3.2
 
 
 #-------------- Install BedTools
-RUN wget https://github.com/arq5x/bedtools2/releases/download/v2.26.0/bedtools-2.26.0.tar.gz && \
-    tar xvfz bedtools-2.26.0.tar.gz && \
-    cd /bedtools2/ && \
-    make && \
-    cp /bedtools2/bin/* /usr/local/bin/ && \
-    cd / && \
-    rm -rf /bedtools2/ && \
-    rm bedtools-2.26.0.tar.gz
+#RUN wget https://github.com/arq5x/bedtools2/releases/download/v2.26.0/bedtools-2.26.0.tar.gz && \
+#    tar xvfz bedtools-2.26.0.tar.gz && \
+#    cd /bedtools2/ && \
+#    make && \
+#    cp /bedtools2/bin/* /usr/local/bin/ && \
+#    cd / && \
+#    rm -rf /bedtools2/ && \
+#    rm bedtools-2.26.0.tar.gz
 
 #-------------- Install BWA
 RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwakit-0.7.15_x64-linux.tar.bz2 && \
@@ -201,16 +201,16 @@ RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwakit-0.7.15_x64-
 
 
 #-------------- Install FastQC
-RUN wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip && \
-    unzip fastqc_v0.11.5.zip && \
-    rm fastqc_v0.11.5.zip
-ENV PATH $PATH:FastQC
+#RUN wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip && \
+#    unzip fastqc_v0.11.5.zip && \
+#    rm fastqc_v0.11.5.zip
+#ENV PATH $PATH:FastQC
 
 
 #-------------- Delly 0.7.x
-RUN wget https://github.com/dellytools/delly/releases/download/v0.7.6/delly_v0.7.6_parallel_linux_x86_64bit && \
-    mv delly_v0.7.6_parallel_linux_x86_64bit /usr/local/bin/delly && \
-    chmod +x /usr/local/bin/delly
+#RUN wget https://github.com/dellytools/delly/releases/download/v0.7.6/delly_v0.7.6_parallel_linux_x86_64bit && \
+#    mv delly_v0.7.6_parallel_linux_x86_64bit /usr/local/bin/delly && \
+#    chmod +x /usr/local/bin/delly
 
 
 #-------------- Install GATK3.5 and Mutect1.1.7

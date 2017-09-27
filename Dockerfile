@@ -173,7 +173,6 @@ RUN wget https://github.com/samtools/htslib/releases/download/1.3.2/htslib-1.3.2
     make install && \
     cd / && \
     rm -rf /samtools-1.3.1* && \
-
     wget https://github.com/samtools/bcftools/releases/download/1.3.1/bcftools-1.3.1.tar.bz2 && \
     tar xvjf bcftools-1.3.1.tar.bz2 && \
     cd /bcftools-1.3.1 && \

@@ -56,7 +56,7 @@ class BWA_MEM_CSV < Toolbase
         rglb = library_id
         readgroup_string = "-R \\"@RG\\\\tID:\#{rgid}\\\\tSM:\#{rgsm}\\\\tLB:\#{rglb}\\\\tPL:ILLUMINA\\\\tPU:\#{rgpu}\\""
         ## Inputs/Outputs
-        basename = rgpu
+        basename = sample + '_' + lane + '_' + flowcell_id
         now      = Time.new.strftime("%d_%m_%Y-%H_%M_%S")
         output   = "\#{output_dir}/\#{basename}\#{output_suffix}.sam"
         stderr   = "\#{output_dir}/\#{basename}\#{output_suffix}_stderr-\#{now}.log"
@@ -84,5 +84,3 @@ class BWA_MEM_CSV < Toolbase
   end
 
 end
-
-

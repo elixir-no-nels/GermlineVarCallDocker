@@ -135,7 +135,7 @@ RUN wget https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz && \
 
 
 #-------------- Install the workflow engine
-COPY rbFlow /
+COPY rbFlow /rbFlow
 RUN rm -rf /rbFlow/.git
 ENV PATH $PATH:/rbFlow/bin/
 
@@ -166,7 +166,6 @@ RUN wget https://github.com/samtools/htslib/releases/download/1.3.2/htslib-1.3.2
     make install && \
     cd / && \
     rm -rf htslib-1.3.2* && \
-
     wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2 && \
     tar xvjf samtools-1.3.1.tar.bz2 && \
     cd /samtools-1.3.1 && \

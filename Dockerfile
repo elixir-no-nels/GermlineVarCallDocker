@@ -137,6 +137,7 @@ RUN wget https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz && \
 #-------------- Install the workflow engine
 COPY rbFlow /rbFlow
 RUN rm -rf /rbFlow/.git
+RUN chmod -R 644 /rbFlow && chmod -R ugo+X /rbFlow && chmod 755 /rbFlow/bin/*
 ENV PATH $PATH:/rbFlow/bin/
 
 #-------------- Create a /Jar directory to store jar files

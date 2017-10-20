@@ -10,7 +10,7 @@ class Picard2MultiInput < Toolbase
      input_dir         = <%= @opt_parser.get       from: 'input_dir',          default_value: '',         required: true,  type: String, comment: 'Input directory' %>
      input_files       = <%= @opt_parser.get       from: 'input_files',        default_value: '',         required: true,  type: String, comment: 'files to select as input files' %>
      output_dir        = <%= @opt_parser.get       from: 'output_dir',         default_value: 'output',   required: true,  type: String, comment: 'Output Directory' %>
-     output_suffix     = <%= @opt_parser.get       from: 'output_suffix',      default_value: '',         required: false, type: String, comment: 'Suffix for the output file' %>
+     output_suffix     = <%= @opt_parser.get       from: 'output_suffix',      default_value: '_sorted',  required: false, type: String, comment: 'Suffix for the output file' %>
      group_by_samples  = <%= @opt_parser.get       from: 'group_by_samples',   default_value: '',         required: false, type: String, comment: 'If True, group files a sample names contains in the file name' %>
      group_spliter     = <%= @opt_parser.get       from: 'group_spliter',      default_value: '_',        required: false, type: String, comment: 'Define the character to use to split the sample tag from the sample name' %>
      group_on_index    = <%= @opt_parser.get       from: 'group_on_index',     default_value: 0,          required: false, type: Integer, comment: 'Position of the sample tag after spliting of the file name (start by 0)' %>
@@ -59,7 +59,7 @@ class Picard2MultiInput < Toolbase
 
         files    = files_list.join " INPUT="
         now      = Time.new.strftime("%d_%m_%Y-%H_%M_%S")
-        basename = "sample_\#{sample_tag}"
+        basename = File.basename(files_list[0], ".*")
         output   = "\#{output_dir}/\#{basename}\#{output_suffix}.bam"
         stdout   = "\#{output_dir}/\#{basename}\#{output_suffix}_stdout-\#{now}.log"  #"
         stderr   = "\#{output_dir}/\#{basename}\#{output_suffix}_stderr-\#{now}.log"  #"

@@ -29,37 +29,35 @@ class GATK_GenotypeGVCFs < Toolbase
       output_dir_name = output_dir
       output_dir = "\#{project_path}/\#{output_dir}"
       FileUtils.mkdir_p output_dir     # Create the output_dir if it doesn't exist
-      inputvcf = []
       for file in input_files do
-        inputvcf.push "--variant  \#{file}"
-      end
-      basename = File.basename(file, ".*")
-      out_vcf  = "\#{output_dir}/\#{basename}\#{output_suffix}.vcf"
-      ### Step1: GenotypeGVCFs command
-      now      = Time.new.strftime("%d_%m_%Y-%H_%M_%S")
-      stdout   = "\#{output_dir}/\#{basename}\#{output_suffix}_stdout-\#{now}.log"
-      stderr   = "\#{output_dir}/\#{basename}\#{output_suffix}_stderr-\#{now}.log"
-      ## Step1: Base Recalibrator command
-      cmd = Command.new task_name: task_name, log: @log
-      cmd.line << "cd \#{project_path}; \#{java_bin} \#{arg_java} "
-      cmd.line << "-jar \#{gatk_jar} "
-      cmd.line << "-T   GenotypeGVCFs "
-      cmd.line << "-nt  \#{core}"
-      cmd.line << "-R   \#{ref_path} "
-      cmd.line << "-o   \#{out_vcf} "
-      cmd.line << "\#{inputvcf.join "\n"} "
-      cmd.line << "\#{arg_gatk} "
-      cmd.line << "\#{arg_gatk_GVCF} "
-      cmd.line << "> \#{stdout} 2> \#{stderr} "
-      cmd.run compress_spaces: true, debug_mode: debug
+        basename = File.basename(file, ".*")
+        out_vcf  = "\#{output_dir}/\#{basename}\#{output_suffix}.vcf"
+        ### Step1: GenotypeGVCFs command
+        now      = Time.new.strftime("%d_%m_%Y-%H_%M_%S")
+        stdout   = "\#{output_dir}/\#{basename}\#{output_suffix}_stdout-\#{now}.log"
+        stderr   = "\#{output_dir}/\#{basename}\#{output_suffix}_stderr-\#{now}.log"
+        ## Step1: Base Recalibrator command
+        cmd = Command.new task_name: task_name, log: @log
+        cmd.line << "cd \#{project_path}; \#{java_bin} \#{arg_java} "
+        cmd.line << "-jar \#{gatk_jar} "
+        cmd.line << "-T   GenotypeGVCFs "
+        cmd.line << "-nt  \#{core}"
+        cmd.line << "-R   \#{ref_path} "
+        cmd.line << "-o   \#{out_vcf} "
+        cmd.line << "--variant  \#{file}"
+        cmd.line << "\#{arg_gatk} "
+        cmd.line << "\#{arg_gatk_GVCF} "
+        cmd.line << "> \#{stdout} 2> \#{stderr} "
+        cmd.run compress_spaces: true, debug_mode: debug
 
-      # - Error Test -
-      if File.file?(out_vcf) # if the file exist
-        error_list.push "\#{out_vcf} output file is empty"  if File.size(out_vcf)  == 0 # the size should be > 0
-      else
-        error_list.push "\#{out_vcf} output file not found" # boolean
+        # - Error Test -
+        if File.file?(out_vcf) # if the file exist
+          error_list.push "\#{out_vcf} output file is empty"  if File.size(out_vcf)  == 0 # the size should be > 0
+        else
+          error_list.push "\#{out_vcf} output file not found" # boolean
+        end
+        # - Error Test -
       end
-      # - Error Test -
 
       # rm TMP
       `rm -rf \#{output_dir}/TMP`

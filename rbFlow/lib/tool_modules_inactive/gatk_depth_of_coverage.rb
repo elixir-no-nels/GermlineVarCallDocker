@@ -1,7 +1,7 @@
 # to register the module. This name must start by a capital, use CamelCase and correspond to the class name
-@module_name = "GATK_GenotypeGVCFs"
+@module_name = "GATK_DepthOfCoverage"
 
-class GATK_GenotypeGVCFs < Toolbase
+class GATK_DepthOfCoverage < Toolbase
 
   ## Template for the Rake Task
 
@@ -17,7 +17,7 @@ class GATK_GenotypeGVCFs < Toolbase
      core           = <%= @opt_parser.get      from: 'core',          default_value: 1,        required: false, type: Integer, comment: 'Number of core to use' %>
      arg_java       = <%= @opt_parser.get_args from: 'java',          default_value: ['-Xmx4G'],   comment: 'Argument send to Java' %>
      arg_gatk       = <%= @opt_parser.get_args from: 'gatk',          default_value: [],           comment: 'Argument for gatk (send to all gatk tools used in this step)' %>
-     arg_gatk_GVCF  = <%= @opt_parser.get_args from: 'gatk_GVCF',     default_value: [], comment: 'Argument for gatk GenotypeGVCFs' %>
+     arg_gatk_doc   = <%= @opt_parser.get_args from: 'gatk_DepthOfCoverage',    default_value: [], comment: 'Argument for gatk DepthOfCoverage' %>
     ~
   end
 
@@ -31,30 +31,30 @@ class GATK_GenotypeGVCFs < Toolbase
       FileUtils.mkdir_p output_dir     # Create the output_dir if it doesn't exist
       for file in input_files do
         basename = File.basename(file, ".*")
-        out_vcf  = "\#{output_dir}/\#{basename}\#{output_suffix}.vcf"
-        ### Step1: GenotypeGVCFs command
+        group    = "\#{output_dir}/\#{basename}\#{output_suffix}.grp"
+        ### Step1: DepthOfCoverage
         now      = Time.new.strftime("%d_%m_%Y-%H_%M_%S")
         stdout   = "\#{output_dir}/\#{basename}\#{output_suffix}_stdout-\#{now}.log"
         stderr   = "\#{output_dir}/\#{basename}\#{output_suffix}_stderr-\#{now}.log"
-        ## Step1: Base Recalibrator command
+
+        ## Step1: DepthOfCoverage command
         cmd = Command.new task_name: task_name, log: @log
         cmd.line << "cd \#{project_path}; \#{java_bin} \#{arg_java} "
-        cmd.line << "-jar \#{gatk_jar} "
-        cmd.line << "-T   GenotypeGVCFs "
-        cmd.line << "-nt  \#{core}"
-        cmd.line << "-R   \#{ref_path} "
-        cmd.line << "-o   \#{out_vcf} "
-        cmd.line << "--variant  \#{file}"
-        cmd.line << "\#{arg_gatk} "
-        cmd.line << "\#{arg_gatk_GVCF} "
-        cmd.line << "> \#{stdout} 2> \#{stderr} "
+        cmd.line << "-jar \#{gatk_jar}"
+        cmd.line << "-T   DepthOfCoverage "
+        cmd.line << "-nct  \#{core}"
+        cmd.line << "-R   \#{ref_path}"
+        cmd.line << "-I   \#{file}"
+        cmd.line << "-o   \#{group}"
+        cmd.line << "\#{arg_gatk}"
+        cmd.line << "\#{arg_gatk_doc}"
+        cmd.line << "> \#{stdout} 2> \#{stderr}"
         cmd.run compress_spaces: true, debug_mode: debug
-
         # - Error Test -
-        if File.file?(out_vcf) # if the file exist
-          error_list.push "\#{out_vcf} output file is empty"  if File.size(out_vcf)  == 0 # the size should be > 0
+        if File.file?(group+".sample_summary") # if the file exist
+          error_list.push "\#{group}.sample_summary output file is empty"  if File.size(group+".sample_summary")  == 0 # the size should be > 0
         else
-          error_list.push "\#{out_vcf} output file not found" # boolean
+          error_list.push "\#{group}.sample_summary output file not found" # boolean
         end
         # - Error Test -
       end

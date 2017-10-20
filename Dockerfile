@@ -13,7 +13,7 @@ LABEL soft.Picard="2.12.x"
 LABEL soft.samtools="1.3.x"
 #LABEL soft.bedtools="2.26.x"
 #LABEL soft.delly="0.7.x"
-LABEL soft.bwa="0.7.x"
+LABEL soft.bwa="0.7.16x"
 #LABEL soft.fastqc="0.11.x"
 LABEL ext_soft.rbFlow="latest"
 # Software locally installed (licence issue)
@@ -28,12 +28,14 @@ ENV PATH $PATH:/usr/local/libexec/:/usr/local/bin/
 
 #-------------- Add APK packages
 ENV PKG_BASE="bzip2-dev ca-certificates gnupg libffi-dev libstdc++ openssl-dev yaml-dev procps zlib-dev"
-ENV PKG_TEMP="alpine-sdk bash coreutils curl libxml2-dev libxslt-dev linux-headers make ncurses-dev procps readline-dev wget "
+ENV PKG_TEMP="alpine-sdk bash coreutils curl libxml2-dev libxslt-dev linux-headers make ncurses-dev procps readline-dev wget curl "
 ENV PKG_LANG="python openjdk8-jre ruby"
 RUN set -ex && \
     apk upgrade --update && \
     apk add --no-cache --update $PKG_BASE $PKG_TEMP $PKG_LANG
 
+# Upgrade ca-certificates
+RUN apk update && apk add ca-certificates && update-ca-certificates && apk add openssl
 
 #--------------  Install Ruby verion 2.4.0
 #RUN wget https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz && \
@@ -120,12 +122,21 @@ RUN wget https://github.com/samtools/htslib/releases/download/1.3.2/htslib-1.3.2
 #    rm bedtools-2.26.0.tar.gz
 
 #-------------- Install BWA
-RUN wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwakit-0.7.15_x64-linux.tar.bz2 && \
+RUN curl -L https://github.com/lh3/bwa/releases/download/v0.7.15/bwakit-0.7.15_x64-linux.tar.bz2 -O && \
     tar xvjf bwakit-0.7.15_x64-linux.tar.bz2 && \
     cp bwa.kit/bwa /usr/local/bin/ && \
     rm -rf bwa.kit && \
     rm bwakit-0.7.15_x64-linux.tar.bz2
 
+RUN curl -L -O https://github.com/lh3/bwa/releases/download/v0.7.16/bwa-0.7.16a.tar.bz2 && \
+    bunzip2 bwa-0.7.16a.tar.bz2 && \
+    tar xvf bwa-0.7.16a.tar && \
+    cd bwa-0.7.16a/ && \
+    make && \
+    chmod +x bwa && \
+    mv bwa /usr/local/bin && \
+    cd .. && \
+    rm -rf bwa-0.7.16a*
 
 #-------------- Install FastQC
 #RUN wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip && \

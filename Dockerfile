@@ -44,9 +44,8 @@ RUN set -ex && \
 #    cd / && \
 #    rm ruby-2.4.0.tar.gz && \
 #    rm -rf ruby-2.4.0 && \
-#    gem update --system && \
-#    gem update
-#    #gem install --no-document rdoc rake
+RUN gem install --no-document rdoc && \
+    gem install --no-document rake pry awesome_print
 
 
 #-------------- Install cpanminus

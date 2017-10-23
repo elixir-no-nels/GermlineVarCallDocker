@@ -1,7 +1,7 @@
 # to register the module. This name must start by a capital, use CamelCase and correspond to the class name
-@module_name = "GATK_HaplotypeCaller"
+@module_name = "GATK_GenotypeGVCFs"
 
-class GATK_HaplotypeCaller < Toolbase
+class GATK_GenotypeGVCFs < Toolbase
 
   ## Template for the Rake Task
 
@@ -14,9 +14,10 @@ class GATK_HaplotypeCaller < Toolbase
      output_suffix  = <%= @opt_parser.get      from: 'output_suffix', default_value: '_DOC',   required: true,  type: String, comment: 'suffix for output files' %>
      java_bin       = <%= @opt_parser.get      from: 'java_bin',      default_value: 'java',   required: false, type: String, comment: 'binary or Path/binary for java' %>
      gatk_jar       = <%= @opt_parser.get      from: 'gatk_jar',      default_value: 'GenomeAnalysisTK.jar',    required: false,  type: String,  comment: 'Path/file.jar for GATK' %>
+     core           = <%= @opt_parser.get      from: 'core',          default_value: 1,        required: false, type: Integer, comment: 'Number of core to use' %>
      arg_java       = <%= @opt_parser.get_args from: 'java',          default_value: ['-Xmx4G'],   comment: 'Argument send to Java' %>
      arg_gatk       = <%= @opt_parser.get_args from: 'gatk',          default_value: [],           comment: 'Argument for gatk (send to all gatk tools used in this step)' %>
-     arg_gatk_HC    = <%= @opt_parser.get_args from: 'gatk_HaplotypeCaller',    default_value: [], comment: 'Argument for gatk gatk_haplotypeCaller' %>
+     arg_gatk_GVCF  = <%= @opt_parser.get_args from: 'gatk_GVCF',     default_value: [], comment: 'Argument for gatk GenotypeGVCFs' %>
     ~
   end
 
@@ -31,22 +32,22 @@ class GATK_HaplotypeCaller < Toolbase
       for file in input_files do
         basename = File.basename(file, ".*")
         out_vcf  = "\#{output_dir}/\#{basename}\#{output_suffix}.vcf"
-        ### Step1: HaplotypeCaller command
+        ### Step1: GenotypeGVCFs command
         now      = Time.new.strftime("%d_%m_%Y-%H_%M_%S")
         stdout   = "\#{output_dir}/\#{basename}\#{output_suffix}_stdout-\#{now}.log"
         stderr   = "\#{output_dir}/\#{basename}\#{output_suffix}_stderr-\#{now}.log"
-
         ## Step1: Base Recalibrator command
         cmd = Command.new task_name: task_name, log: @log
         cmd.line << "cd \#{project_path}; \#{java_bin} \#{arg_java} "
-        cmd.line << "-jar \#{gatk_jar}"
-        cmd.line << "-T   HaplotypeCaller "
-        cmd.line << "-R   \#{ref_path}"
-        cmd.line << "-I   \#{file}"
-        cmd.line << "-o   \#{out_vcf}"
-        cmd.line << "\#{arg_gatk}"
-        cmd.line << "\#{arg_gatk_HC}"
-        cmd.line << "> \#{stdout} 2> \#{stderr}"
+        cmd.line << "-jar \#{gatk_jar} "
+        cmd.line << "-T   GenotypeGVCFs "
+        cmd.line << "-nt  \#{core}"
+        cmd.line << "-R   \#{ref_path} "
+        cmd.line << "-o   \#{out_vcf} "
+        cmd.line << "--variant  \#{file}"
+        cmd.line << "\#{arg_gatk} "
+        cmd.line << "\#{arg_gatk_GVCF} "
+        cmd.line << "> \#{stdout} 2> \#{stderr} "
         cmd.run compress_spaces: true, debug_mode: debug
 
         # - Error Test -
@@ -56,7 +57,6 @@ class GATK_HaplotypeCaller < Toolbase
           error_list.push "\#{out_vcf} output file not found" # boolean
         end
         # - Error Test -
-
       end
 
       # rm TMP

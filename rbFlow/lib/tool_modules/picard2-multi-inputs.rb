@@ -60,6 +60,7 @@ class Picard2MultiInput < Toolbase
         files    = files_list.join " INPUT="
         now      = Time.new.strftime("%d_%m_%Y-%H_%M_%S")
         basename = "sample_\#{sample_tag}"
+        basename = 'mapped_sequences' if sample_tag == '*'
         output   = "\#{output_dir}/\#{basename}\#{output_suffix}.bam"
         stdout   = "\#{output_dir}/\#{basename}\#{output_suffix}_stdout-\#{now}.log"  #"
         stderr   = "\#{output_dir}/\#{basename}\#{output_suffix}_stderr-\#{now}.log"  #"

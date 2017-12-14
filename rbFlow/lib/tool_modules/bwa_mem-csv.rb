@@ -30,6 +30,8 @@ class BWA_MEM_CSV < Toolbase
         # check the number of columns
         line_size      = line.split(split_char).size
         expected_field = 6
+        next if line_size == 0    # skip empty lines
+        next if line[0]   == '#'  # skip line starting by "#""
         if line_size != expected_field
           @log.info(task_name) {" Error on \#{input_csv} parsing"}
           @log.info(task_name) {" a line contain \#{line_size} field, \#{expected_field} are expected :"}
